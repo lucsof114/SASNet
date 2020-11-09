@@ -1,32 +1,33 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from params import params
 
 
 class WaveUNet(nn.Module):
-    def __init__(self, L, K, Fc, fd, fu):
+    def __init__(self):
         super(WaveUNet, self).__init__()
-        self.L = L
-        self.K = K
-        self.Fc = Fc
-        self.fd = fd
-        self.fu = fu
-
+        self.L = params["L"]
+        self.K = params["K"]
+        self.Fc = params["Fc"]
+        self.fd = params["fd"]
+        self.fu = params["fu"]
+        self.C = 1 if params["stereo"] == "False" else 2
         self.down_convs = nn.ModuleList()
-        for i in range(L + 1):
-        	inchannel = Fc * i if i > 0 else 1
-        	self.down_convs.append(nn.Conv1d(in_channels=inchannel, out_channels=Fc * (i+1), kernel_size=fd, padding=fd//2))
+        for i in range(self.L + 1):
+        	inchannel = self.Fc * i if i > 0 else self.C
+        	self.down_convs.append(nn.Conv1d(in_channels=inchannel, out_channels= self.Fc * (i+1), kernel_size= self.fd, padding=self.fd//2))
         	#print(inchannel, Fc * (i+1))
 
         
         self.up_convs = nn.ModuleList()
-        for i in range(L):
-        	downsample_inchannel = Fc * (i+1)
-        	upsample_inchannel = Fc * (i+2)
-        	self.up_convs.append(nn.Conv1d(in_channels= downsample_inchannel + upsample_inchannel, out_channels=Fc * (i+1), kernel_size=fu, padding=fu//2))
+        for i in range(self.L):
+        	downsample_inchannel = self.Fc * (i+1)
+        	upsample_inchannel = self.Fc * (i+2)
+        	self.up_convs.append(nn.Conv1d(in_channels= downsample_inchannel + upsample_inchannel, out_channels= self.Fc * (i+1), kernel_size=self.fu, padding=self.fu//2))
         	#print(downsample_inchannel, upsample_inchannel, downsample_inchannel + upsample_inchannel, Fc * (i+1))
 
-        self.final_conv = nn.Conv1d(in_channels=Fc + 1, out_channels=K-1, kernel_size=1)
+        self.final_conv = nn.Conv1d(in_channels=self.Fc + 1, out_channels=self.K-1, kernel_size=1)
 
     def forward(self, x):
     	L = self.L
@@ -52,11 +53,11 @@ class WaveUNet(nn.Module):
     	return out
 
 
-wavenet = WaveUNet(12, 5, 24, 15, 5)
+# wavenet = WaveUNet(12, 5, 24, 15, 5)
 
-# Simple test to check dims
-input = torch.randn(1, 1, 16384)
-wavenet(input)
+# # Simple test to check dims
+# input = torch.randn(1, 1, 16384)
+# wavenet(input)
 
 
 '''
