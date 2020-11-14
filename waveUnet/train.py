@@ -1,6 +1,7 @@
 import torch
 from tqdm import tqdm
 from params import params
+import torch.nn as nn
 
 from dataloader import DSD100
 from utils import *
@@ -35,7 +36,7 @@ def getDataLoader(dataset):
 
 def train(train_loader, dev_loader, model, device): 
 	N_epoch = params["num_epochs"]
-	tb_writer = SummaryWriter("save" + params["name"] + "/")
+	tb_writer = SummaryWriter("save/" + params["name"] + "/")
 
 	avg = AverageMeter()
 	optimizer = torch.optim.Adam(model.parameters(), lr = params["learning_rate"])
