@@ -16,7 +16,8 @@ def getDataLoader(dataset):
 	N = len(dataset)
 	split_frac = params["train_dev_overfit"] if params["overfit"] == "True" else params["train_dev_normal"]
 
-	lengths = [int(N*split_frac), int(N * (1 - split_frac))]
+	lengths = [int(N*split_frac), 0]
+	lengths[1] = N - lengths[0]
 	train_set, dev_set = td.random_split(dataset, lengths)
 	train_loader = td.DataLoader(train_set, batch_size = params["batch_size"], shuffle = True, drop_last = True)
 
@@ -42,7 +43,7 @@ def train(train_loader, dev_loader, model, device):
 	time2eval = params["evaluate_every"]
 
 	num_steps = 0
-
+	lossFn = nn.MSELoss()
 	for epoch in range(N_epoch):
 		print("Starting Epoch: ", epoch)
 		avg.reset()
@@ -50,15 +51,11 @@ def train(train_loader, dev_loader, model, device):
 			for (X, ys) in train_loader:
 				batch_size = X.shape[0]
 				num_steps += batch_size
-				# import pdb
-				# pdb.set_trace()
-
 				X = X.to(device)
 				ys = ys.to(device)
 				optimizer.zero_grad()
 				y_pred = model(X)
-
-				loss = F.mse_loss(y_pred, ys)
+				loss = lossFn(y_pred, ys)
 				loss_value = loss.item()
 
 				pbar.update(batch_size)
@@ -74,12 +71,12 @@ def train(train_loader, dev_loader, model, device):
 				if time2eval <= 0: 
 					print("Evaluating...")
 					time2eval = params["evaluate_every"]
-					loss_dev = eval(model, dev_loader, device)
+					loss_dev = eval(model, dev_loader, device, lossFn)
 					tb_writer.add_scalar('dev loss', loss_dev, num_steps)
 
 
 
-def eval(model, loader, device): 
+def eval(model, loader, device, lossFn): 
 	model.eval()
 
 	loss = 0 
@@ -96,7 +93,7 @@ def eval(model, loader, device):
 			num += X.shape[0]
 
 			y_pred = model(X)
-			loss += F.mse_loss(y_pred, ys).item()     
+			loss += lossFn(y_pred, ys).item()     
 
 			avg.update(loss, 1)
 			pbar2.update(X.shape[0])
