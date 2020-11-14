@@ -8,7 +8,6 @@ params = {
 	"fu": 5, 
 	"song_length": 16384, 
 	"fs" : 441000, 
-	"nData": 100,
 	"train_dev_normal": 0.75,
 	"train_dev_overfit": 0.97,
 	"overfit": "True",
@@ -18,5 +17,6 @@ params = {
 	"decayB2" : 0.999,
 	"num_epochs": 20,
 	"stereo": "False",
-	"evaluate_every": 50
+	"evaluate_every": 50,
+	"enforce_sum" : "True"
 }
