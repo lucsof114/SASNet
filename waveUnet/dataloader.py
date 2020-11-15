@@ -50,6 +50,7 @@ class DSD100(Dataset):
 
 	def loadsong(self, loc): 
 		data = wavfile.read(loc[0])[1][loc[1][0] : loc[1][1]]
+		
 		return torch.from_numpy(data).float()
 
 	def __getitem__(self, idx): 

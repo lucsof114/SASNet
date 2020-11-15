@@ -17,6 +17,6 @@ params = {
 	"decayB2" : 0.999,
 	"num_epochs": 20,
 	"stereo": "False",
-	"evaluate_every": 50,
+	"evaluate_every": 10000,
 	"enforce_sum" : "True"
 }
