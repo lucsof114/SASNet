@@ -131,10 +131,11 @@ if __name__ == "__main__":
 	model = WaveUNet()
 	model = model.to(device)
 	model.train()
-
+	print ("Model Generated")
 	#Load Data
 	train_loader, dev_loader = getDataLoader(DSD100())
 	params["best_val_loss"] = None
+	print("Data Loaded")
 
 	train(train_loader, dev_loader, model, device)
 
