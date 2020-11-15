@@ -21,16 +21,16 @@ def getDataLoader(dataset):
 	lengths = [int(N*split_frac), 0]
 	lengths[1] = N - lengths[0]
 	train_set, dev_set = td.random_split(dataset, lengths)
-	train_loader = td.DataLoader(train_set, batch_size = params["batch_size"], shuffle = True, drop_last = True)
+	train_loader = td.DataLoader(train_set, batch_size = params["batch_size"], shuffle = True, drop_last = True, num_workers=4, pin_memory=True)
 
 	print("Training set :{}".format(lengths[0]))
 	print("Dev set:{}".format(lengths[1]))
 	if params["overfit"] == "True": 
 		print("Overfitting Mode")
-		dev_loader = td.DataLoader(train_set, batch_size = params["batch_size"], drop_last = True)
+		dev_loader = td.DataLoader(train_set, batch_size = params["batch_size"], drop_last = True, num_workers=4, pin_memory=True)
 	else: 
 		print("Training Mode")
-		dev_loader = td.DataLoader(dev_set, batch_size = params["batch_size"], drop_last = True)
+		dev_loader = td.DataLoader(dev_set, batch_size = params["batch_size"], drop_last = True, num_workers=4, pin_memory=True)
 
 	return train_loader, dev_loader
 
