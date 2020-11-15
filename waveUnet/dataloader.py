@@ -34,6 +34,7 @@ class DSD100(Dataset):
 				for i in range(int(song.shape[0]/params["song_length"])):
 					self.pathDict["X"].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
 					self.size += 1
+				song.clear()
 
 			for file in os.listdir(sourcePath + dtype):
 				for inst in self.instruments:
@@ -41,7 +42,7 @@ class DSD100(Dataset):
 					_, song = wavfile.read(sgPath)
 					for i in range(int(song.shape[0]/params["song_length"])):
 						self.pathDict["Y"][inst].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
-	
+					song.clear()
 
 
 
