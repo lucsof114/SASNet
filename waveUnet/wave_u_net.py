@@ -42,7 +42,7 @@ class WaveUNet(nn.Module):
     	#print('Up Pipe')
     	up_pipe = [down_pipe[-1]]
     	for i in range(L):
-    		tmp = torch.cat((down_pipe[L - i], F.interpolate(up_pipe[-1], scale_factor=2, mode='linear')), dim=1)
+    		tmp = torch.cat((down_pipe[L - i], F.interpolate(up_pipe[-1], scale_factor=2.0, mode='linear')), dim=1)
     		up_pipe.append(F.leaky_relu(self.up_convs[L - i - 1](tmp)))
 
     	tmp = torch.cat((x, up_pipe[-1]), dim=1)
