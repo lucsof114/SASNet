@@ -18,5 +18,6 @@ params = {
 	"num_epochs": 20,
 	"stereo": "False",
 	"evaluate_every": 10000,
-	"enforce_sum" : "True"
+	"enforce_sum" : "True",
+	"DSD100_size": 67754
 }

@@ -6,7 +6,7 @@ from params import params
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import os
-
+import json
 
 ## TODO : DATA AUGMENTATION AS DESCRIBED IN PAPER
 class DSD100(Dataset):
@@ -18,33 +18,34 @@ class DSD100(Dataset):
 		mixPath = path + "/Mixtures/"
 		sourcePath = path + "/Sources/"
 		self.instruments = ["bass", "drums", "vocals", "other"]
-		self.pathDict = { "X": [],  
-			 			  "Y": {} }
-
-
-		self.size = 0
-		for inst in self.instruments:
-			self.pathDict["Y"][inst] = []
 		print("Loading data")
-		for dtype in ["Dev", "Test"]:
-			for file in os.listdir(mixPath + dtype):
-				sgPath = mixPath + dtype + "/" + file + "/mixture.wav"
-				print("read song" + str(self.size))
-				_, song = wavfile.read(sgPath)
-				for i in range(int(song.shape[0]/params["song_length"])):
-					self.pathDict["X"].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
-					self.size += 1
-				song.clear()
+		with open('dsd100-preprocess.txt') as json_file:
+			self.pathDict = json.load(json_file)
 
-			for file in os.listdir(sourcePath + dtype):
-				for inst in self.instruments:
-					sgPath = sourcePath + dtype + "/" + file + "/" + inst + ".wav"
-					_, song = wavfile.read(sgPath)
-					for i in range(int(song.shape[0]/params["song_length"])):
-						self.pathDict["Y"][inst].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
-					song.clear()
+		# self.pathDict = { "X": [],  
+		# 	 			  "Y": {} }
 
 
+		self.size = params["DSD100_size"]
+		# for inst in self.instruments:
+		# 	self.pathDict["Y"][inst] = []
+
+		# for dtype in ["Dev", "Test"]:
+		# 	for file in os.listdir(mixPath + dtype):
+		# 		sgPath = mixPath + dtype + "/" + file + "/mixture.wav"
+		# 		print("read song" + str(self.size))
+		# 		_, song = wavfile.read(sgPath)
+		# 		for i in range(int(song.shape[0]/params["song_length"])):
+		# 			self.pathDict["X"].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
+		# 			self.size += 1
+
+		# 	for file in os.listdir(sourcePath + dtype):
+		# 		for inst in self.instruments:
+		# 			sgPath = sourcePath + dtype + "/" + file + "/" + inst + ".wav"
+		# 			_, song = wavfile.read(sgPath)
+		# 			for i in range(int(song.shape[0]/params["song_length"])):
+		# 				self.pathDict["Y"][inst].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
+		# print("FINAL SIZE ", self.size)
 
 
 	def __len__(self): 
