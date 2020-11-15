@@ -14,6 +14,7 @@ from tensorboardX import SummaryWriter
 import torch.nn.functional as F
 
 def getDataLoader(dataset): 
+	print("start loader")
 	N = len(dataset)
 	split_frac = params["train_dev_overfit"] if params["overfit"] == "True" else params["train_dev_normal"]
 

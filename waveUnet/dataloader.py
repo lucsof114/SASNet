@@ -25,10 +25,11 @@ class DSD100(Dataset):
 		self.size = 0
 		for inst in self.instruments:
 			self.pathDict["Y"][inst] = []
-
+		print("Loading data")
 		for dtype in ["Dev", "Test"]:
 			for file in os.listdir(mixPath + dtype):
 				sgPath = mixPath + dtype + "/" + file + "/mixture.wav"
+				print("read song" + str(self.size))
 				_, song = wavfile.read(sgPath)
 				for i in range(int(song.shape[0]/params["song_length"])):
 					self.pathDict["X"].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
@@ -50,7 +51,7 @@ class DSD100(Dataset):
 
 	def loadsong(self, loc): 
 		data = wavfile.read(loc[0])[1][loc[1][0] : loc[1][1]]
-		
+
 		return torch.from_numpy(data).float()
 
 	def __getitem__(self, idx): 

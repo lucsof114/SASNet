@@ -6,7 +6,7 @@
     "decayB1": 0.9,
     "decayB2": 0.999,
     "enforce_sum": "True",
-    "evaluate_every": 50,
+    "evaluate_every": 10000,
     "fd": 15,
     "fs": 441000,
     "fu": 5,
