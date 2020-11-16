@@ -9,7 +9,7 @@ params = {
 	"song_length": 16384, 
 	"fs" : 44100, 
 	"train_dev_split": 0.75,
-	"overfit_dataset_size": 1000,
+	"overfit_dataset_size": 12500,
 	"overfit": False,
 	"seed": 669,
 	"learning_rate": 0.000001, 
@@ -17,6 +17,6 @@ params = {
 	"decayB2" : 0.999,
 	"num_epochs": 100,
 	"stereo": False,
-	"evaluate_every": 2000,
+	"evaluate_every": 50000,
 	"enforce_sum" : True
 }
