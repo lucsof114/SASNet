@@ -135,7 +135,6 @@ if __name__ == "__main__":
 
 	#load model
 	model = WaveUNet()
-	model.load_state_dict(torch.load("save/test/test.pkl"))
 	model = model.to(device)
 	model.train()
 	print ("Model Generated")
