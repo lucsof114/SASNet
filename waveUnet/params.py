@@ -1,6 +1,6 @@
 
 params = {
-	"batch_size" : 2, 
+	"batch_size" : 32, 
 	"L" : 12, 
 	"K" : 4, 
 	"Fc": 24, 
