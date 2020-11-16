@@ -12,7 +12,7 @@ class WaveUNet(nn.Module):
         self.Fc = params["Fc"]
         self.fd = params["fd"]
         self.fu = params["fu"]
-        self.C = 1 if params["stereo"] == "False" else 2
+        self.C = 1 if not params["stereo"]  else 2
         self.down_convs = nn.ModuleList()
         for i in range(self.L + 1):
         	inchannel = self.Fc * i if i > 0 else self.C

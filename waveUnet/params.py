@@ -1,6 +1,6 @@
 
 params = {
-	"batch_size" : 16, 
+	"batch_size" : 2, 
 	"L" : 12, 
 	"K" : 4, 
 	"Fc": 24, 
@@ -8,15 +8,15 @@ params = {
 	"fu": 5, 
 	"song_length": 16384, 
 	"fs" : 441000, 
-	"train_dev_normal": 0.75,
-	"train_dev_overfit": 0.97,
-	"overfit": "True",
+	"train_dev_split": 0.75,
+	"overfit_dataset_size": 1000,
+	"overfit": True,
 	"seed": 669,
-	"learning_rate": 0.0001, 
+	"learning_rate": 0.000001, 
 	"decayB1" : 0.9,
 	"decayB2" : 0.999,
-	"num_epochs": 20,
-	"stereo": "False",
-	"evaluate_every": 10000,
-	"enforce_sum" : "True"
+	"num_epochs": 100,
+	"stereo": False,
+	"evaluate_every": 2000,
+	"enforce_sum" : True
 }
