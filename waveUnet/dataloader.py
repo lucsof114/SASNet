@@ -13,12 +13,44 @@ class DSD100(Dataset):
 
     def __init__(self):
         #Load Paths 
-        path = "../save_data/DSD100"
+        self.load_data(params["overfit_dataset_size"] if params["overfit"] else None)
+
+        # self.instruments = ["bass", "drums", "vocals", "other"]
+        # self.pathDict = { "X": [],  
+        #         		  "Y": {} }
+        # self.songs = {}
+
+        # self.size = 0
+        # for inst in self.instruments:
+        #     self.pathDict["Y"][inst] = []
+        # print("Loading data")
+        # for dtype in ["Dev", "Test"]:
+        #     for file in os.listdir(mixPath + dtype):
+        #         sgPath = mixPath + dtype + "/" + file + "/mixture.wav"
+        #         print("read song " + str(self.size))
+        #         _, song = wavfile.read(sgPath)
+        #         for i in range(int(song.shape[0]/params["song_length"])):
+        #             self.pathDict["X"].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
+        #             self.size += 1
+        #         self.songs[sgPath] = song
+
+        #         for file in os.listdir(sourcePath + dtype):
+        #             for inst in self.instruments:
+        #                 sgPath = sourcePath + dtype + "/" + file + "/" + inst + ".wav"
+        #                 _, song = wavfile.read(sgPath)
+        #                 for i in range(int(song.shape[0]/params["song_length"])):
+        #                     self.pathDict["Y"][inst].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
+        #                 self.songs[sgPath] = song
+
+
+
+    def load_data(self, n = None):
+        path = "../data/DSD100"
         mixPath = path + "/Mixtures/"
         sourcePath = path + "/Sources/"
+        maxSize = n if n is not None else -1
         self.instruments = ["bass", "drums", "vocals", "other"]
-        self.pathDict = { "X": [],  
-                "Y": {} }
+        self.pathDict = { "X": [],  "Y": {} }
         self.songs = {}
 
         self.size = 0
@@ -27,32 +59,32 @@ class DSD100(Dataset):
         print("Loading data")
         for dtype in ["Dev", "Test"]:
             for file in os.listdir(mixPath + dtype):
-                sgPath = mixPath + dtype + "/" + file + "/mixture.wav"
-                print("read song " + str(self.size))
-                _, song = wavfile.read(sgPath)
-                for i in range(int(song.shape[0]/params["song_length"])):
-                    self.pathDict["X"].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
-                    self.size += 1
-                self.songs[sgPath] = song
+                mxPath = mixPath + dtype + "/" + file + "/mixture.wav"
+                srcPath = sourcePath + dtype + "/" + file + "/" + inst + ".wav"
 
-                for file in os.listdir(sourcePath + dtype):
+                self.songs[mxPath] = torch.from_numpy(wavfile.read(mxPath)[1]).float()
+                N = self.songs[mxPath].shape[0]
+                for inst in self.instruments:
+                	self.songs[srcPath] = torch.from_numpy(wavfile.read(srcPath)[1]).float()
+
+                for i in range(int(N/params["song_length"])):
+                    self.pathDict["X"].append((mxPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
                     for inst in self.instruments:
-                        sgPath = sourcePath + dtype + "/" + file + "/" + inst + ".wav"
-                        _, song = wavfile.read(sgPath)
-                        for i in range(int(song.shape[0]/params["song_length"])):
-                            self.pathDict["Y"][inst].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
-                        self.songs[sgPath] = song
-
-
+                    	self.pathDict["Y"][inst].append((srcPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
+                    self.size += 1
+                    if self.size == maxSize: 
+                    	return
 
 
     def __len__(self): 
         return self.size
 
     def loadsong(self, loc): 
-        #data = wavfile.read(loc[0])[1][loc[1][0] : loc[1][1]]
         data = self.songs[loc[0]][loc[1][0]:loc[1][1]]
-        return torch.from_numpy(data).float()
+        mx = torch.max(data)
+        return data if mx == 0 else data / mx
+
+     
 
     def __getitem__(self, idx): 
 
@@ -62,9 +94,9 @@ class DSD100(Dataset):
 
         Ydata = torch.stack(Ydata, axis = 0)
 
-        if params["enforce_sum"] != "True":
+        if not params["enforce_sum"]:
             Xdata = self.loadsong(self.pathDict["X"][idx])
-            if params["stereo"] == "False":
+            if not params["stereo"]:
                 Xdata = torch.mean(Xdata, axis = 1, keepdims = True).transpose(0, 1)
         else: 
             Xdata = torch.sum(Ydata, axis = 0, keepdims = True)

@@ -2,6 +2,7 @@ import torch
 from tqdm import tqdm
 from params import params
 import torch.nn as nn
+import sounddevice as sd
 
 from dataloader import DSD100
 from utils import *
@@ -16,7 +17,7 @@ import torch.nn.functional as F
 def getDataLoader(dataset): 
 	print("start loader")
 	N = len(dataset)
-	split_frac = params["train_dev_overfit"] if params["overfit"] == "True" else params["train_dev_normal"]
+	split_frac = params["train_dev_split"]
 
 	lengths = [int(N*split_frac), 0]
 	lengths[1] = N - lengths[0]
@@ -46,6 +47,7 @@ def train(train_loader, dev_loader, model, device):
 
 	num_steps = 0
 	lossFn = nn.MSELoss()
+
 	for epoch in range(N_epoch):
 		print("Starting Epoch: ", epoch)
 		avg.reset()
@@ -103,6 +105,7 @@ def eval(model, loader, device, lossFn):
 
 	avg_loss = loss/num
 	if params["best_val_loss"] is None or params["best_val_loss"] > avg_loss:
+		play_sample(model, loader)
 		print("Saving New Model!")
 		params["best_val_loss"] = avg_loss
 		torch.save(model.state_dict(), "save/" + params["name"] + "/" + params["name"] + ".pkl")
@@ -112,6 +115,12 @@ def eval(model, loader, device, lossFn):
 	return avg_loss
 
 
+def play_sample(model, loader): 
+	X, _ = next(iter(loader))
+	ypred = model(X)
+	sd.play(X[0,0,:])
+	for y in ypred[0]:
+		sd.play(y.detach().numpy())
 
 
 if __name__ == "__main__": 
