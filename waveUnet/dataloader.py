@@ -32,13 +32,13 @@ class DSD100(Dataset):
             for file in os.listdir(mixPath + dtype):
                 mxPath = mixPath + dtype + "/" + file + "/mixture.wav"
                 base_srcPath = sourcePath + dtype + "/" + file + "/"
-                track = wavfile.read(mxPath)[1]
-                self.songs[mxPath] = torch.from_numpy(track/np.max(np.abs(track))).float()
+                track = wavfile.read(mxPath)[1][::2]
+                self.songs[mxPath] = track/np.max(np.abs(track))
                 N = self.songs[mxPath].shape[0]
                 for inst in self.instruments:
                 	srcPath = base_srcPath + inst + ".wav"
-                	track = wavfile.read(srcPath)[1]
-                	self.songs[srcPath] = torch.from_numpy(track/np.max(np.abs(track))).float()
+                	track = wavfile.read(srcPath)[1][::2]
+                	self.songs[srcPath] = track/np.max(np.abs(track))
 
                 for i in range(int(N/params["song_length"])):
                     self.pathDict["X"].append((mxPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
@@ -55,7 +55,7 @@ class DSD100(Dataset):
 
     def loadsong(self, loc): 
         data = self.songs[loc[0]][loc[1][0]:loc[1][1]]
-        return data
+        return torch.from_numpy(data).float()
 
      
 

@@ -64,6 +64,7 @@ def train(train_loader, dev_loader, model, device):
 				loss = lossFn(y_pred, ys)
 				loss_value = loss.item()
 
+
 				pbar.update(batch_size)
 				avg.update(loss_value, 1)
 				pbar.set_postfix(loss =avg.avg, epoch= epoch)
