@@ -16,11 +16,11 @@ def get_song(idx):
 	if not os.path.isdir(svpath):
 		os.mkdir("test/" + filename)
 	songs = {}
-	songs["mix"] = np.mean(wavfile.read(mxPath + filename + "/mixture.wav")[1], axis = 1, keepdims = True)
+	songs["mix"] = np.mean(wavfile.read(mxPath + filename + "/mixture.wav")[1][::2], axis = 1, keepdims = True)
 	numpy2wav(songs["mix"].T, ["mix"], svpath)
 
 	for inst in ["bass", "drums", "vocals", "other"]: 
-		songs[inst] =  np.mean(wavfile.read(srcPath + filename + "/" + inst + ".wav")[1], axis = 1, keepdims = True)
+		songs[inst] =  np.mean(wavfile.read(srcPath + filename + "/" + inst + ".wav")[1][::2], axis = 1, keepdims = True)
 		numpy2wav(songs[inst].T, [inst], svpath)
 
 	return songs, svpath

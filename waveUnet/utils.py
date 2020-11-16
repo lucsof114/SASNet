@@ -39,6 +39,13 @@ def numpy2wav(arr, names, svpath):
         track = arr[i]/np.max(np.abs(arr[i]))
         wavfile.write(svpath + "/" + names[i] + ".wav", params["fs"], track)
 
+def wav2numpy(filename, downsample, isMono):
+    track = wavfile.read(filename)[1]
+    if isMono: 
+        track = np.mean(track, axis = 1)
+    if downsample:
+        track = track[::2]
+    return track
 
 def save_params(params): 
     assert len(sys.argv) > 1 , "Please provide a name to your model"
