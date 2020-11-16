@@ -3,6 +3,9 @@ import os
 import sys
 import json
 import shutil
+from scipy.io import wavfile
+from params import params
+import numpy as np
 
 def get_available_devices():
     """Get IDs of all available GPUs.
@@ -20,6 +23,21 @@ def get_available_devices():
 
     return device, gpu_ids
 
+
+def torch2wav(tensor, names, svpath):
+    assert len(tensor.shape) == 2
+    assert len(names) == tensor.shape[0]
+    for i in range(tensor.shape[0]):
+        track = tensor[i]/torch.max(torch.abs(tensor[i]))
+        wavfile.write(svpath + "/" + names[i] + ".wav", params["fs"], track.numpy())
+
+
+def numpy2wav(arr, names, svpath):
+    assert len(arr.shape) == 2
+    assert len(names) == arr.shape[0]
+    for i in range(arr.shape[0]):
+        track = arr[i]/np.max(np.abs(arr[i]))
+        wavfile.write(svpath + "/" + names[i] + ".wav", params["fs"], track)
 
 
 def save_params(params): 

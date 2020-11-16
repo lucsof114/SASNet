@@ -31,16 +31,19 @@ class DSD100(Dataset):
         for dtype in ["Dev", "Test"]:
             for file in os.listdir(mixPath + dtype):
                 mxPath = mixPath + dtype + "/" + file + "/mixture.wav"
-                srcPath = sourcePath + dtype + "/" + file + "/" + inst + ".wav"
-
-                self.songs[mxPath] = torch.from_numpy(wavfile.read(mxPath)[1]).float()
+                base_srcPath = sourcePath + dtype + "/" + file + "/"
+                track = wavfile.read(mxPath)[1]
+                self.songs[mxPath] = torch.from_numpy(track/np.max(np.abs(track))).float()
                 N = self.songs[mxPath].shape[0]
                 for inst in self.instruments:
-                	self.songs[srcPath] = torch.from_numpy(wavfile.read(srcPath)[1]).float()
+                	srcPath = base_srcPath + inst + ".wav"
+                	track = wavfile.read(srcPath)[1]
+                	self.songs[srcPath] = torch.from_numpy(track/np.max(np.abs(track))).float()
 
                 for i in range(int(N/params["song_length"])):
                     self.pathDict["X"].append((mxPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
                     for inst in self.instruments:
+                    	srcPath = base_srcPath + inst + ".wav"
                     	self.pathDict["Y"][inst].append((srcPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
                     self.size += 1
                     if self.size == maxSize: 
@@ -52,8 +55,7 @@ class DSD100(Dataset):
 
     def loadsong(self, loc): 
         data = self.songs[loc[0]][loc[1][0]:loc[1][1]]
-        mx = torch.max(data)
-        return data if mx == 0 else data / mx
+        return data
 
      
 

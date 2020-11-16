@@ -6,6 +6,7 @@ from scipy.io import wavfile
 import os
 from wave_u_net import WaveUNet
 import numpy as np
+from utils import torch2wav, numpy2wav
 
 def get_song(idx): 
 	mxPath = "../data/DSD100/Mixtures/Dev/"
@@ -15,13 +16,13 @@ def get_song(idx):
 	if not os.path.isdir(svpath):
 		os.mkdir("test/" + filename)
 	songs = {}
-	songs["mix"] = np.mean(wavfile.read(mxPath + filename + "/mixture.wav")[1], axis = 1)
-	trck = songs["mix"]/np.max(np.abs(songs["mix"]))
-	wavfile.write(svpath + "/mix.wav", params["fs"], trck)
+	songs["mix"] = np.mean(wavfile.read(mxPath + filename + "/mixture.wav")[1], axis = 1, keepdims = True)
+	numpy2wav(songs["mix"].T, ["mix"], svpath)
+
 	for inst in ["bass", "drums", "vocals", "other"]: 
-		songs[inst] = wavfile.read(srcPath + filename + "/" + inst + ".wav")[1]
-		trck = np.mean(songs[inst]/np.max(np.abs(songs[inst])), axis = 1)
-		wavfile.write(svpath + "/" + inst + ".wav",  params["fs"], trck)
+		songs[inst] =  np.mean(wavfile.read(srcPath + filename + "/" + inst + ".wav")[1], axis = 1, keepdims = True)
+		numpy2wav(songs[inst].T, [inst], svpath)
+
 	return songs, svpath
 
 
@@ -32,10 +33,8 @@ def estimate_tracks(model, song):
 	song = song.view(1, -1)
 	N = song.shape[1]
 	ypred = []
-	for i in range(int(N/params["song_length"])):
+	for i in range(int(N/params["song_length"])): #int(N/params["song_length"])
 		segment = song[0, i * params["song_length"]:(i + 1) * params["song_length"]].view(1, 1, -1)
-		mx = torch.max(segment)
-		segment *= 1 if mx == 0 else 1/mx
 		segment = model(segment)
 		ypred.append(segment[0])
 
@@ -48,9 +47,7 @@ def test_song(model_name, song_ind):
 	model.load_state_dict(torch.load("save/" + model_name + "/" + model_name +".pkl"))
 	with torch.no_grad():
 		ypred = estimate_tracks(model, tracks["mix"])
-		for i in range(4): 
-			ypred[i] /= torch.max(torch.abs(ypred[i]))
-			wavfile.write(svpath + "/estimate_" + instrument[i] + ".wav", params["fs"], ypred[i].numpy())
+		torch2wav(ypred, ["predicted_" + x for x in instrument], svpath)
 
 
 if __name__ == '__main__':
