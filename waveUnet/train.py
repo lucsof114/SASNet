@@ -46,7 +46,7 @@ def train(train_loader, dev_loader, model, device):
 	time2eval = params["evaluate_every"]
 
 	num_steps = 0
-	lossFn = nn.MSELoss()
+	lossFn = nn.MSELoss(reduction = "sum")
 
 	for epoch in range(N_epoch):
 		print("Starting Epoch: ", epoch)
@@ -57,6 +57,8 @@ def train(train_loader, dev_loader, model, device):
 				num_steps += batch_size
 				X = X.to(device)
 				ys = ys.to(device)
+
+
 				optimizer.zero_grad()
 				y_pred = model(X)
 				loss = lossFn(y_pred, ys)
@@ -69,14 +71,14 @@ def train(train_loader, dev_loader, model, device):
 				loss.backward()
 				optimizer.step()
 
-				tb_writer.add_scalar("batch train loss", loss_value, num_steps )
+				tb_writer.add_scalar("Batched Training Loss", loss_value, num_steps )
 
 				time2eval -= batch_size
 				if time2eval <= 0: 
 					print("Evaluating...")
 					time2eval = params["evaluate_every"]
 					loss_dev = eval(model, dev_loader, device, lossFn)
-					tb_writer.add_scalar('dev loss', loss_dev, num_steps)
+					tb_writer.add_scalar('Average Dev Loss', loss_dev, num_steps)
 
 
 
@@ -88,7 +90,7 @@ def eval(model, loader, device, lossFn):
 	num = 0 
 	avg = AverageMeter()
 
-	with torch.no_grad(),tqdm(total=len(loader.dataset)) as pbar2:
+	with torch.no_grad(): #,tqdm(total=len(loader.dataset)) as pbar2:
 
 		for batch_index,(X, ys) in enumerate(loader):
 			X = X.to(device)
@@ -100,13 +102,15 @@ def eval(model, loader, device, lossFn):
 			loss += lossFn(y_pred, ys).item()     
 
 			avg.update(loss, 1)
-			pbar2.update(X.shape[0])
-			pbar2.set_postfix(loss =avg.avg)
+			# pbar2.update(X.shape[0])
+			# pbar2.set_postfix(loss =avg.avg)
 
 	avg_loss = loss/num
+	print("Loss: ", loss)
 	if params["best_val_loss"] is None or params["best_val_loss"] > avg_loss:
 		print("Saving New Model!")
 		params["best_val_loss"] = avg_loss
+
 		torch.save(model.state_dict(), "save/" + params["name"] + "/" + params["name"] + ".pkl")
 
 	model.train()
@@ -131,6 +135,7 @@ if __name__ == "__main__":
 
 	#load model
 	model = WaveUNet()
+	model.load_state_dict(torch.load("save/test/test.pkl"))
 	model = model.to(device)
 	model.train()
 	print ("Model Generated")

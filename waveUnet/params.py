@@ -1,6 +1,6 @@
 
 params = {
-	"batch_size" : 32, 
+	"batch_size" : 64, 
 	"L" : 12, 
 	"K" : 4, 
 	"Fc": 24, 
@@ -10,7 +10,7 @@ params = {
 	"fs" : 44100, 
 	"train_dev_split": 0.75,
 	"overfit_dataset_size": 1000,
-	"overfit": True,
+	"overfit": False,
 	"seed": 669,
 	"learning_rate": 0.000001, 
 	"decayB1" : 0.9,
