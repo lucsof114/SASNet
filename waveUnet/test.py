@@ -49,28 +49,8 @@ def test_song(model_name, song_ind):
 	with torch.no_grad():
 		ypred = estimate_tracks(model, tracks["mix"])
 		for i in range(4): 
-			ypred[i] /= torch.max(ypred[i])
+			ypred[i] /= torch.max(torch.abs(ypred[i]))
 			wavfile.write(svpath + "/estimate_" + instrument[i] + ".wav", params["fs"], ypred[i].numpy())
-
-
-
-	# while True:
-	# 	user_input = input ("choose track [mix/bass/drums/vocals/other/quit]")
-	# 	if user_input == "quit":
-	# 		return 
-	# 	if user_input == "bass":
-	# 		sd.play(ypred[0,:], blocking = True)
-	# 	elif user_input == "drums":
-	# 		sd.play(ypred[1, :], blocking = True)
-	# 	elif user_input == "vocals":
-	# 		sd.play(ypred[2, :], blocking = True)
-	# 	elif user_input == "other":
-	# 		sd.play(ypred[3, :], blocking = True)
-	# 	elif user_input == "mix":
-	# 		sd.play(tracks["mix"],  blocking = True)
-	# 	else:
-	# 		print("not valid input")
-
 
 
 if __name__ == '__main__':
