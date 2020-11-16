@@ -31,7 +31,7 @@ def save_params(params):
         sys.exit()
     if answer == "y":
         shutil.rmtree("save/" + str(sys.argv[1]) + "/")
-    os.system("sudo mkdir save/" + str(sys.argv[1]) )
+    os.mkdir("save/" + str(sys.argv[1]) + "/")
     with open(("save/" + str(sys.argv[1]) + "/" + str(sys.argv[1]) + ".json"), 'w') as fp:
         json.dump(params,sort_keys=True, indent=4,fp= fp)
 
