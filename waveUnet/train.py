@@ -105,7 +105,7 @@ def eval(model, loader, device, lossFn):
 
 	avg_loss = loss/num
 	if params["best_val_loss"] is None or params["best_val_loss"] > avg_loss:
-		play_sample(model, loader)
+		#play_sample(model, loader)
 		print("Saving New Model!")
 		params["best_val_loss"] = avg_loss
 		torch.save(model.state_dict(), "save/" + params["name"] + "/" + params["name"] + ".pkl")
