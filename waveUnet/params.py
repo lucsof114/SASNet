@@ -7,7 +7,7 @@ params = {
 	"fd": 15, 
 	"fu": 5, 
 	"song_length": 16384, 
-	"fs" : 441000, 
+	"fs" : 44100, 
 	"train_dev_split": 0.75,
 	"overfit_dataset_size": 1000,
 	"overfit": True,
