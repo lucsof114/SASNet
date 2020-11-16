@@ -15,35 +15,6 @@ class DSD100(Dataset):
         #Load Paths 
         self.load_data(params["overfit_dataset_size"] if params["overfit"] else None)
 
-        # self.instruments = ["bass", "drums", "vocals", "other"]
-        # self.pathDict = { "X": [],  
-        #         		  "Y": {} }
-        # self.songs = {}
-
-        # self.size = 0
-        # for inst in self.instruments:
-        #     self.pathDict["Y"][inst] = []
-        # print("Loading data")
-        # for dtype in ["Dev", "Test"]:
-        #     for file in os.listdir(mixPath + dtype):
-        #         sgPath = mixPath + dtype + "/" + file + "/mixture.wav"
-        #         print("read song " + str(self.size))
-        #         _, song = wavfile.read(sgPath)
-        #         for i in range(int(song.shape[0]/params["song_length"])):
-        #             self.pathDict["X"].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
-        #             self.size += 1
-        #         self.songs[sgPath] = song
-
-        #         for file in os.listdir(sourcePath + dtype):
-        #             for inst in self.instruments:
-        #                 sgPath = sourcePath + dtype + "/" + file + "/" + inst + ".wav"
-        #                 _, song = wavfile.read(sgPath)
-        #                 for i in range(int(song.shape[0]/params["song_length"])):
-        #                     self.pathDict["Y"][inst].append((sgPath, [i * params["song_length"], (i + 1) * params["song_length"]]))
-        #                 self.songs[sgPath] = song
-
-
-
     def load_data(self, n = None):
         path = "../data/DSD100"
         mixPath = path + "/Mixtures/"
