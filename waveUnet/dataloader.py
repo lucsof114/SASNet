@@ -32,6 +32,7 @@ class DSD100(Dataset):
             for file in os.listdir(mixPath + dtype):
                 mxPath = mixPath + dtype + "/" + file + "/mixture.wav"
                 base_srcPath = sourcePath + dtype + "/" + file + "/"
+                print(base_srcPath, self.size)
                 track = wavfile.read(mxPath)[1][::2]
                 self.songs[mxPath] = track/np.max(np.abs(track))
                 N = self.songs[mxPath].shape[0]

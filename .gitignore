@@ -2,4 +2,4 @@ data/
 __pycache__/
 test/
 temp/
-save/
+waveUnet/save/

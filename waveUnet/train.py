@@ -13,136 +13,142 @@ from wave_u_net import WaveUNet
 from tensorboardX import SummaryWriter
 
 import torch.nn.functional as F
+import torch.fft
 
 def getDataLoader(dataset): 
-	print("start loader")
-	N = len(dataset)
-	split_frac = params["train_dev_split"]
+        print("start loader")
+        N = len(dataset)
+        split_frac = params["train_dev_split"]
 
-	lengths = [int(N*split_frac), 0]
-	lengths[1] = N - lengths[0]
-	train_set, dev_set = td.random_split(dataset, lengths)
-	train_loader = td.DataLoader(train_set, batch_size = params["batch_size"], shuffle = True, drop_last = True, num_workers=4, pin_memory=True)
+        lengths = [int(N*split_frac), 0]
+        lengths[1] = N - lengths[0]
+        train_set, dev_set = td.random_split(dataset, lengths)
+        train_loader = td.DataLoader(train_set, batch_size = params["batch_size"], shuffle = True, drop_last = True, num_workers=4, pin_memory=True)
 
-	print("Training set :{}".format(lengths[0]))
-	print("Dev set:{}".format(lengths[1]))
-	if params["overfit"] == "True": 
-		print("Overfitting Mode")
-		dev_loader = td.DataLoader(train_set, batch_size = params["batch_size"], drop_last = True, num_workers=4, pin_memory=True)
-	else: 
-		print("Training Mode")
-		dev_loader = td.DataLoader(dev_set, batch_size = params["batch_size"], drop_last = True, num_workers=4, pin_memory=True)
+        print("Training set :{}".format(lengths[0]))
+        print("Dev set:{}".format(lengths[1]))
+        if params["overfit"] == "True": 
+                print("Overfitting Mode")
+                dev_loader = td.DataLoader(train_set, batch_size = params["batch_size"], drop_last = True, num_workers=4, pin_memory=True)
+        else: 
+                print("Training Mode")
+                dev_loader = td.DataLoader(dev_set, batch_size = params["batch_size"], drop_last = True, num_workers=4, pin_memory=True)
 
-	return train_loader, dev_loader
+        return train_loader, dev_loader
 
 
 def train(train_loader, dev_loader, model, device): 
-	N_epoch = params["num_epochs"]
-	tb_writer = SummaryWriter("save/" + params["name"] + "/")
+        N_epoch = params["num_epochs"]
+        tb_writer = SummaryWriter("save/" + params["name"] + "/")
 
-	avg = AverageMeter()
-	optimizer = torch.optim.Adam(model.parameters(), lr = params["learning_rate"])
+        avg = AverageMeter()
+        optimizer = torch.optim.Adam(model.parameters(), lr = params["learning_rate"])
 
-	time2eval = params["evaluate_every"]
+        time2eval = params["evaluate_every"]
 
-	num_steps = 0
-	lossFn = nn.MSELoss(reduction = "sum")
+        num_steps = 0
+        #lossFn = nn.MSELoss(reduction = "sum")
+        def customLoss(pred, y):
+            td_loss = torch.sum((pred - y)**2)
+            fd_loss = torch.sum(torch.abs(torch.fft.rfft(pred, dim=2) - torch.fft.rfft(y, dim=2))**2)
+            return (td_loss + params["gamma"] * fd_loss) / pred.shape[0]
 
-	for epoch in range(N_epoch):
-		print("Starting Epoch: ", epoch)
-		avg.reset()
-		with torch.enable_grad(), tqdm(total=len(train_loader.dataset)) as pbar:
-			for (X, ys) in train_loader:
-				batch_size = X.shape[0]
-				num_steps += batch_size
-				X = X.to(device)
-				ys = ys.to(device)
-
-
-				optimizer.zero_grad()
-				y_pred = model(X)
-				loss = lossFn(y_pred, ys)
-				loss_value = loss.item()
+        for epoch in range(N_epoch):
+                print("Starting Epoch: ", epoch)
+                avg.reset()
+                with torch.enable_grad(), tqdm(total=len(train_loader.dataset)) as pbar:
+                        for (X, ys) in train_loader:
+                                batch_size = X.shape[0]
+                                num_steps += batch_size
+                                X = X.to(device)
+                                ys = ys.to(device)
 
 
-				pbar.update(batch_size)
-				avg.update(loss_value, 1)
-				pbar.set_postfix(loss =avg.avg, epoch= epoch)
+                                optimizer.zero_grad()
+                                y_pred = model(X)
+                                #loss = lossFn(y_pred, ys)
+                                loss = customLoss(y_pred, ys)
+                                loss_value = loss.item()
 
-				loss.backward()
-				optimizer.step()
 
-				tb_writer.add_scalar("Batched Training Loss", loss_value, num_steps )
+                                pbar.update(batch_size)
+                                avg.update(loss_value, 1)
+                                pbar.set_postfix(loss =avg.avg, epoch= epoch)
 
-				time2eval -= batch_size
-				if time2eval <= 0: 
-					print("Evaluating...")
-					time2eval = params["evaluate_every"]
-					loss_dev = eval(model, dev_loader, device, lossFn)
-					tb_writer.add_scalar('Average Dev Loss', loss_dev, num_steps)
+                                loss.backward()
+                                optimizer.step()
+
+                                tb_writer.add_scalar("Batched Training Loss", loss_value, num_steps )
+
+                                time2eval -= batch_size
+                                if time2eval <= 0: 
+                                        print("Evaluating...")
+                                        time2eval = params["evaluate_every"]
+                                        loss_dev = eval(model, dev_loader, device, customLoss)
+                                        tb_writer.add_scalar('Average Dev Loss', loss_dev, num_steps)
 
 
 
 def eval(model, loader, device, lossFn): 
-	model.eval()
+        model.eval()
 
-	loss = 0 
-	accuracy = 0 
-	num = 0 
-	avg = AverageMeter()
+        loss = 0 
+        accuracy = 0 
+        num = 0 
+        avg = AverageMeter()
 
-	with torch.no_grad(): #,tqdm(total=len(loader.dataset)) as pbar2:
+        with torch.no_grad(): #,tqdm(total=len(loader.dataset)) as pbar2:
 
-		for batch_index,(X, ys) in enumerate(loader):
-			X = X.to(device)
-			ys = ys.to(device)
+                for batch_index,(X, ys) in enumerate(loader):
+                        X = X.to(device)
+                        ys = ys.to(device)
 
-			num += X.shape[0]
+                        num += X.shape[0]
 
-			y_pred = model(X)
-			loss += lossFn(y_pred, ys).item()     
+                        y_pred = model(X)
+                        loss += lossFn(y_pred, ys).item()     
 
-			avg.update(loss, 1)
-			# pbar2.update(X.shape[0])
-			# pbar2.set_postfix(loss =avg.avg)
+                        avg.update(loss, 1)
+                        # pbar2.update(X.shape[0])
+                        # pbar2.set_postfix(loss =avg.avg)
 
-	avg_loss = loss/num
-	print("Loss: ", loss)
-	if params["best_val_loss"] is None or params["best_val_loss"] > avg_loss:
-		print("Saving New Model!")
-		params["best_val_loss"] = avg_loss
+        avg_loss = loss/num
+        print("Avg Loss: ", avg_loss)
+        if params["best_val_loss"] is None or params["best_val_loss"] > avg_loss:
+                print("Saving New Model!")
+                params["best_val_loss"] = avg_loss
 
-		torch.save(model.state_dict(), "save/" + params["name"] + "/" + params["name"] + ".pkl")
+                torch.save(model.state_dict(), "save/" + params["name"] + "/" + params["name"] + ".pkl")
 
-	model.train()
+        model.train()
 
-	return avg_loss
+        return avg_loss
 
 
 
 if __name__ == "__main__": 
 
-	# init seeds 
-	torch.manual_seed(params["seed"])
-	torch.cuda.manual_seed_all(params["seed"])
+        # init seeds 
+        torch.manual_seed(params["seed"])
+        torch.cuda.manual_seed_all(params["seed"])
 
-	#save work
-	save_params(params)
-	params["name"] = sys.argv[1]
+        #save work
+        save_params(params)
+        params["name"] = sys.argv[1]
 
-	#check devices
-	device, gpu_ids = get_available_devices()
-	print(device)
+        #check devices
+        device, gpu_ids = get_available_devices()
+        print(device)
 
-	#load model
-	model = WaveUNet()
-	model = model.to(device)
-	model.train()
-	print ("Model Generated")
-	#Load Data
-	train_loader, dev_loader = getDataLoader(DSD100())
-	params["best_val_loss"] = None
-	print("Data Loaded")
+        #load model
+        model = WaveUNet()
+        model = model.to(device)
+        model.train()
+        print ("Model Generated")
+        #Load Data
+        train_loader, dev_loader = getDataLoader(DSD100())
+        params["best_val_loss"] = None
+        print("Data Loaded")
 
-	train(train_loader, dev_loader, model, device)
+        train(train_loader, dev_loader, model, device)
 
