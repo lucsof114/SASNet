@@ -6,7 +6,7 @@ from scipy.io import wavfile
 import os
 from wave_u_net import WaveUNet
 import numpy as np
-from utils import torch2wav, numpy2wav
+from utils import *
 
 def get_song(idx): 
 	mxPath = "../data/DSD100/Mixtures/Dev/"
@@ -16,35 +16,40 @@ def get_song(idx):
 	if not os.path.isdir(svpath):
 		os.mkdir("test/" + filename)
 	songs = {}
-	songs["mix"] = np.mean(wavfile.read(mxPath + filename + "/mixture.wav")[1][::2], axis = 1, keepdims = True)
-	numpy2wav(songs["mix"].T, ["mix"], svpath)
+	track = wavfile.read(mxPath + filename + "/mixture.wav")[1][::2]
+	songs["mix"] = track / np.max(np.abs(track))
+	print("mix", track.shape)
+	numpy2wav(np.mean(songs["mix"], axis=1).reshape(1, -1), ["mix"], svpath)
 
 	for inst in ["bass", "drums", "vocals", "other"]: 
-		songs[inst] =  np.mean(wavfile.read(srcPath + filename + "/" + inst + ".wav")[1][::2], axis = 1, keepdims = True)
-		numpy2wav(songs[inst].T, [inst], svpath)
+		track = wavfile.read(srcPath + filename + "/" + inst + ".wav")[1][::2]
+		songs[inst] = track / np.max(np.abs(track))
+		print(inst, songs[inst].shape)
+		numpy2wav(np.mean(songs[inst], axis=1).reshape(1, -1), [inst], svpath)
 
 	return songs, svpath
 
 
 
 def estimate_tracks(model, song): 
-
-	song = torch.from_numpy(song).float()
+	song = torch.from_numpy(np.mean(song, axis=1)).float()
 	song = song.view(1, -1)
+	print(song.shape)
 	N = song.shape[1]
 	ypred = []
 	for i in range(int(N/params["song_length"])): #int(N/params["song_length"])
 		segment = song[0, i * params["song_length"]:(i + 1) * params["song_length"]].view(1, 1, -1)
 		segment = model(segment)
 		ypred.append(segment[0])
-
 	return torch.cat(ypred, axis = 1)
 
 def test_song(model_name, song_ind):
 	tracks, svpath = get_song(song_ind)
 	instrument = ["bass", "drums", "vocals", "other"]
+	device, gpu_ids = get_available_devices()
+	print(device)
 	model = WaveUNet()
-	model.load_state_dict(torch.load("save/" + model_name + "/" + model_name +".pkl"))
+	model.load_state_dict(torch.load("save/" + model_name + "/" + model_name +".pkl", map_location=device))
 	with torch.no_grad():
 		ypred = estimate_tracks(model, tracks["mix"])
 		torch2wav(ypred, ["predicted_" + x for x in instrument], svpath)
