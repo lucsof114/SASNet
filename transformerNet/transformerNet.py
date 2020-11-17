@@ -41,7 +41,7 @@ class DFTEmbedder(nn.Module):
 
 	def __init__(self):
 		super(DFTEmbedder, self).__init__()
-		self.nfft = 622
+		self.nfft = 2 * 216 - 2
 		self.spector = torchaudio.transforms.Spectrogram(n_fft = self.nfft)
 
 	def forward(self, x):
@@ -53,36 +53,37 @@ class TransformerNet(nn.Module):
 	def __init__(self):
 		super(TransformerNet, self).__init__()
 
-		self.dftEnc = DFTEmbedder() 
 		kern = int(params["kernel_size"])
 		self.L = params["L"]
 		self.Fc = params["Fc"]
+		self.fu = params["fu"]
+
+
+
+		self.dftEnc = DFTEmbedder() 
+
 		self.timeSigEncoder = nn.ModuleList()
 		for i in range(self.L + 1):
 			inchannel = self.Fc * i if i > 0 else 1
 			self.timeSigEncoder.append(nn.Conv1d(inchannel, self.Fc * (i+1), kernel_size = 15, padding = 15//2))
-		# for sze in [[1, 2], [2, 4], [4,8], [8, 16], [16, 32], [32, 64], [64, 128]] :
-		# 	self.timeSigEncoder.append(nn.Conv1d(sze[0], sze[1], kernel_size = 15, padding = 15//2))
+
 		self.dftEncBlks =  nn.ModuleList()
 		self.timeEncBlks1 =  nn.ModuleList()
 		self.timeEncBlks2 =  nn.ModuleList()
+
 		for i in range(params["numBlks"]):
-			self.dftEncBlks.append(EncoderBlock(53, 53, 312))
-			self.timeEncBlks1.append(EncoderBlock(4, 4, 312))
-			self.timeEncBlks2.append(EncoderBlock(4, 53, 312))
+			self.dftEncBlks.append(EncoderBlock(77, 77, 216)) #53, 53, 312
+			self.timeEncBlks1.append(EncoderBlock(64, 64, 216)) #4, 4, 312
+			self.timeEncBlks2.append(EncoderBlock(64, 77, 216)) #4, 53, 312
 
 		self.timeSigDecoder =  nn.ModuleList()
-		self.fu = 5
+
 		for i in range(self.L):
 			downsample_inchannel = self.Fc * (i+1)
 			upsample_inchannel = self.Fc * (i+2)
 			self.timeSigDecoder.append(nn.Conv1d(in_channels= downsample_inchannel + upsample_inchannel, out_channels= self.Fc * (i+1), kernel_size=self.fu, padding=self.fu//2))
 		
 		self.final_conv = nn.Conv1d(in_channels=self.Fc + 1, out_channels=params["K"]-1, kernel_size=1)
-
-		# for sze in [[256, 128], [192, 64], [96, 32], [48, 16], [24, 8], [12, 4], [6, params["k"] - 1]]: 
-		# 	self.timeSigDecoder.append(nn.Conv1d(sze[0], sze[1], kernel_size = 5, padding = 5//2))
-
 
 	def forward(self, x):
 
@@ -94,6 +95,7 @@ class TransformerNet(nn.Module):
 			junction = F.relu(self.timeSigEncoder[i](currSig))
 			down_pipe.append(junction)
 			currSig = F.interpolate(junction, scale_factor=0.5, mode='nearest')
+
 
 
 		for i in range(params["numBlks"]):
