@@ -2,8 +2,9 @@
 params = {
 
 	"Fc": 24,
-	"L" : 12,
-	"batch_size" : 64, 
+	"L" : 8,
+	"fu" : 5,
+	"batch_size" : 32, 
 	"song_length": 16384,
 	"hidden_size": 128,
 	"num_heads": 8,
@@ -14,7 +15,7 @@ params = {
 	"fs" : 22050, 
 	"train_dev_split": 0.75,
 	"overfit_dataset_size": 1000,
-	"overfit": False,
+	"overfit": True,
 	"seed": 669,
 	"learning_rate": 0.0001, 
 	"decayB1" : 0.9,
