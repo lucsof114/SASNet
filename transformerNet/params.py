@@ -9,7 +9,7 @@ params = {
 	"hidden_size": 128,
 	"num_heads": 8,
 	"dropout": 0.1,
-	"numBlks": 4,
+	"numBlks": 6,
 	"kernel_size": 9,
 	"K": 4,
 	"fs" : 22050, 
