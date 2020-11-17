@@ -1,5 +1,8 @@
 data/
-__pycache__/
-test/
+waveUnet/__pycache__/
+waveUnet/test/
 temp/
-save/
+waveUnet/save/
+transformerNet/__pycache__/
+transformerNet/test/
+transformerNet/save/
