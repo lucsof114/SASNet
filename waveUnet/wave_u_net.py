@@ -39,7 +39,6 @@ class WaveUNet(nn.Module):
     		down_pipe.append(junction)
     		curr = F.interpolate(junction, scale_factor=0.5, mode='nearest')
 
-    	#print('Up Pipe')
     	up_pipe = [down_pipe[-1]]
     	for i in range(L):
     		tmp = torch.cat((down_pipe[L - i], F.interpolate(up_pipe[-1], scale_factor=2.0, mode='linear')), dim=1)
@@ -62,7 +61,7 @@ class WaveUNet(nn.Module):
 
 '''
 
-Initial testing. May remove:
+Initial testing. May remove:    
 
 input = torch.randn(1, 1, 16384)
 m = nn.Conv1d(in_channels=1, out_channels=24, kernel_size=15, padding=7)
