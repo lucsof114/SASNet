@@ -107,7 +107,7 @@ def eval(model, loader, device, lossFn):
 			# pbar2.set_postfix(loss =avg.avg)
 
 	avg_loss = loss/num
-	print("Loss: ", loss)
+	print("Avg Loss: ", avg_loss)
 	if params["best_val_loss"] is None or params["best_val_loss"] > avg_loss:
 		print("Saving New Model!")
 		params["best_val_loss"] = avg_loss

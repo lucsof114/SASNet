@@ -10,7 +10,7 @@ params = {
 	"fs" : 22050, 
 	"train_dev_split": 0.75,
 	"overfit_dataset_size": 100,
-	"overfit": True,
+	"overfit": False,
 	"seed": 669,
 	"learning_rate": 0.0001, 
 	"decayB1" : 0.9,
