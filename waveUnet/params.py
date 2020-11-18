@@ -12,10 +12,10 @@ params = {
 	"overfit_dataset_size": 100,
 	"overfit": False,
 	"seed": 669,
-	"learning_rate": 0.00001, 
+	"learning_rate": 0.0001, 
 	"decayB1" : 0.9,
 	"decayB2" : 0.999,
-	"num_epochs": 100,
+	"num_epochs": 1000,
 	"stereo": False,
 	"evaluate_every": 50000,
 	"enforce_sum" : True

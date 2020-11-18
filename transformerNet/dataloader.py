@@ -1,14 +1,13 @@
 
 import torch
 from scipy.io import wavfile
-import random
+
 from params import params
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import os
 
 
-## TODO : DATA AUGMENTATION AS DESCRIBED IN PAPER
 class DSD100(Dataset):
 
     def __init__(self):
@@ -61,20 +60,18 @@ class DSD100(Dataset):
 
     def __getitem__(self, idx): 
 
-        scale = random.uniform(0.7, 1.0)
-
         Ydata = [] 
         for inst in self.instruments: 
             Ydata.append(torch.mean(self.loadsong(self.pathDict["Y"][inst][idx]), axis = 1))
 
-        Ydata = scale * torch.stack(Ydata, axis = 0)
+        Ydata = torch.stack(Ydata, axis = 0)
 
         if not params["enforce_sum"]:
             Xdata = self.loadsong(self.pathDict["X"][idx])
             if not params["stereo"]:
-                Xdata = scale * torch.mean(Xdata, axis = 1, keepdims = True).transpose(0, 1)
+                Xdata = torch.mean(Xdata, axis = 1, keepdims = True).transpose(0, 1)
         else: 
-            Xdata = scale * torch.sum(Ydata, axis = 0, keepdims = True)
+            Xdata = torch.sum(Ydata, axis = 0, keepdims = True)
         return Xdata, Ydata
 
 

@@ -9,7 +9,7 @@ from utils import *
 import sys
 import torch.utils.data as td
 
-from wave_u_net import WaveUNet
+from transformerNet import TransformerNet
 from tensorboardX import SummaryWriter
 
 import torch.nn.functional as F
@@ -107,7 +107,7 @@ def eval(model, loader, device, lossFn):
 			# pbar2.set_postfix(loss =avg.avg)
 
 	avg_loss = loss/num
-	print("Avg Loss: ", avg_loss)
+	print("Loss: ", loss)
 	if params["best_val_loss"] is None or params["best_val_loss"] > avg_loss:
 		print("Saving New Model!")
 		params["best_val_loss"] = avg_loss
@@ -135,7 +135,8 @@ if __name__ == "__main__":
 	print(device)
 
 	#load model
-	model = WaveUNet()
+	model = TransformerNet()
+
 	model = model.to(device)
 	model.train()
 	print ("Model Generated")
