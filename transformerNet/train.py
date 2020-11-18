@@ -43,7 +43,10 @@ def train(train_loader, dev_loader, model, device):
 	avg = AverageMeter()
 	optimizer = torch.optim.Adam(model.parameters(), lr = params["learning_rate"], betas = (params["decayB1"] , params["decayB2"]), eps = params["eps"])
 	
-	lrUpdate = lambda x : 1/np.sqrt(216) * min(1/np.sqrt(x * params["batch_size"]), params["batch_size"]* x * 4e-6)
+	# lrUpdate = lambda x : 1/np.sqrt(216) * min(1/np.sqrt(x * params["batch_size"]), params["batch_size"]* x * 4e-6)
+	decay_step = params["decay_step"] 
+	alpha = 10e3*params["learning_rate"] * np.sqrt(decay_step) 
+	lrUpdate = lambda x : 10e3*params["learning_rate"] if x * params["batch_size"] <= decay_step else alpha/np.sqrt( x * params["batch_size"])
 	scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda = [lrUpdate])
 	
 	time2eval = params["evaluate_every"]
@@ -73,6 +76,7 @@ def train(train_loader, dev_loader, model, device):
 				pbar.set_postfix(loss =avg.avg, epoch= epoch)
 
 				loss.backward()
+				print("opti: ", optimizer)
 
 				optimizer.step()
 				scheduler.step()
