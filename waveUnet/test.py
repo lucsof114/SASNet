@@ -76,3 +76,6 @@ if __name__ == '__main__':
 	else:
 		metrics = None
 		test_song(sys.argv[1], int(sys.argv[2]), metrics)
+	if metrics:
+		with open("test/" + str(sys.argv[1]) + "/metrics.json", "w") as write_file:
+    		json.dump(metrics, write_file)
