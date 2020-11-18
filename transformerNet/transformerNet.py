@@ -90,7 +90,7 @@ class TransformerNet(nn.Module):
 		currDFT = self.dftEnc(x)
 
 		down_pipe = [x]
-		currSig = x
+		currSig = x  
 		for i in range(self.L + 1): 
 			junction = F.relu(self.timeSigEncoder[i](currSig))
 			down_pipe.append(junction)
