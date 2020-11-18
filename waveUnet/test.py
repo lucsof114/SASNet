@@ -13,6 +13,8 @@ def get_song(model_name, idx):
 	srcPath = "../data/DSD100/Sources/Dev/"
 	filename = os.listdir(mxPath)[idx]
 	svpath = "test/{}/{}".format(model_name, filename)
+	if not os.path.isdir(svpath):
+		os.mkdir(svpath)
 	songs = {}
 	track = wavfile.read(mxPath + filename + "/mixture.wav")[1][::2]
 	songs["mix"] = track / np.max(np.abs(track))
