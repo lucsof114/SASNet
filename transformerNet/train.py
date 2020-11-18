@@ -11,7 +11,7 @@ import torch.utils.data as td
 
 from transformerNet import TransformerNet
 from tensorboardX import SummaryWriter
-
+import numpy as np
 import torch.nn.functional as F
 
 def getDataLoader(dataset): 
@@ -41,8 +41,11 @@ def train(train_loader, dev_loader, model, device):
 	tb_writer = SummaryWriter("save/" + params["name"] + "/")
 
 	avg = AverageMeter()
-	optimizer = torch.optim.Adam(model.parameters(), lr = params["learning_rate"])
-
+	optimizer = torch.optim.Adam(model.parameters(), lr = params["learning_rate"], betas = (params["decayB1"] , params["decayB2"]), eps = params["eps"])
+	
+	lrUpdate = lambda x : 1/np.sqrt(216) * min(1/np.sqrt(x * params["batch_size"]), params["batch_size"]* x * 4e-6)
+	scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda = [lrUpdate])
+	
 	time2eval = params["evaluate_every"]
 
 	num_steps = 0
@@ -70,7 +73,9 @@ def train(train_loader, dev_loader, model, device):
 				pbar.set_postfix(loss =avg.avg, epoch= epoch)
 
 				loss.backward()
+
 				optimizer.step()
+				scheduler.step()
 
 				tb_writer.add_scalar("Batched Training Loss", loss_value, num_steps )
 
