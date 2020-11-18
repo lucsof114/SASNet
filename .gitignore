@@ -6,3 +6,7 @@ waveUnet/save/
 transformerNet/__pycache__/
 transformerNet/test/
 transformerNet/save/
+waveUnet++/__pycache__/
+waveUnet++/test/
+waveUNet++/save/
+
