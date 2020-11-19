@@ -9,4 +9,5 @@ transformerNet/save/
 waveUnet++/__pycache__/
 waveUnet++/test/
 waveUnet++/save/
-
+test/
+performance_visualization.png
