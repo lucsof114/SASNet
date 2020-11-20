@@ -10,6 +10,7 @@ import random
 if os.environ.get('DISPLAY','') == '':
     print('no display found. Using non-interactive Agg backend')
     mpl.use('Agg')
+import pandas as pd
 import json
 
 models = ["test3", "test4", "test5", "transformer2", "transformer4", "waveunet++1"]
@@ -42,3 +43,7 @@ fig.legend(handles=[orange_patch, blue_patch, green_patch],loc='upper right')
 fig.tight_layout()
 fig.set_size_inches(15,10)
 fig.savefig('performance_visualization.png')
+
+df = pd.DataFrame({song: [model_data[i][song] for i in range(len(model_data))] for song in songs}, index=model_label)
+print(df)
+df.to_csv('SASNet_model_comparison.txt') 
