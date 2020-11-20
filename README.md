@@ -1,3 +1,5 @@
-# EE269_FinalProject
-Source separation using DSP and deep learning
+# SASNet
+Stanford Audio Separation Network. 
+
+A deep learning method based of wavUnet for audio source separation.
 
