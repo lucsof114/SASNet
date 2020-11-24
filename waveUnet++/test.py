@@ -29,8 +29,25 @@ def get_song(model_name, idx):
 
         return songs, svpath, filename
 
+def get_song2(model_name, file): 
+        filename = os.path.basename(file)[:-4]
+        print(filename)
+        svpath = "test/{}/{}".format(model_name, filename)
+        if not os.path.isdir(svpath):
+                os.mkdir(svpath)
+        songs = {}
+        track = wavfile.read(file)[1][::2]
+        print(track.shape)
+        songs["mix"] = np.mean(track / np.max(np.abs(track)), axis=1).reshape(1, -1) if len(track.shape) == 2 else (track / np.max(np.abs(track))).reshape(1, -1)
+        print("mix", songs["mix"].shape)
+        numpy2wav(songs["mix"], ["mix"], svpath)
+        return songs, svpath, filename
+
+
 def estimate_tracks(model, song): 
         print("Estimate track: ", song.shape)
+        if len(song.shape) == 2:
+            song = song.view(1, 1, -1)
         N = song.shape[2]
         ypred = []
         for i in range(int(N/params["song_length"])): #int(N/params["song_length"])
@@ -40,25 +57,28 @@ def estimate_tracks(model, song):
         return torch.cat(ypred, axis = 1)
 
 def test_song(model_name, song_ind, metrics):
-        tracks, svpath, song_name = get_song(model_name, song_ind)
+        try:
+            tracks, svpath, song_name = get_song(model_name, int(song_ind))
+            DSD100 = True
+        except ValueError:
+            tracks, svpath, song_name = get_song2(model_name, song_ind)
+            DSD100 = False
         instrument = ["bass", "drums", "vocals", "other"]
         device, gpu_ids = get_available_devices()
         print(device)
         model = WaveUNetPP()
         model.load_state_dict(torch.load("save/" + model_name + "/" + model_name +".pkl", map_location=device))
         with torch.no_grad():
-                Ydata = torch.stack([torch.from_numpy(tracks[instr]).float() for instr in instrument], axis = 0)
-                Xdata = torch.sum(Ydata, axis = 0, keepdims = True)
-                N = params["song_length"]
-                print("Ydata", Ydata.shape)
-                print("Xdata", Xdata.shape)
+                Xdata = torch.from_numpy(tracks["mix"]).float()
                 ypred = estimate_tracks(model, Xdata)
-                Ydata = Ydata.view(4, -1)[:, :N*(Xdata.shape[2]//N)]
-                print(ypred.shape)
-                print(Ydata.shape)
-                loss = torch.mean((ypred - Ydata)**2).item()
-                print(song_name, "has loss", loss)
-                metrics[song_name] = loss
+                if DSD100:
+                    N = params["song_length"]
+                    Ydata = torch.stack([torch.from_numpy(tracks[instr]).float() for instr in instrument], axis = 0)
+                    Ydata = Ydata.view(4, -1)[:, :N*(Xdata.shape[2]//N)]
+                    loss = torch.mean((ypred - Ydata)**2).item()
+                    print(song_name, "has loss", loss)
+                    metrics[song_name] = loss
+                print("Will save to {}".format(svpath))
                 torch2wav(ypred, ["predicted_" + x for x in instrument], svpath)
 
 if __name__ == '__main__':
@@ -79,7 +99,7 @@ if __name__ == '__main__':
                 for i in range(5):
                         test_song(sys.argv[1], i, metrics)
         else:
-            test_song(sys.argv[1], int(sys.argv[2]), metrics)
+            test_song(sys.argv[1], sys.argv[2], metrics)
         print(metrics)
         with open("test/" + str(sys.argv[1]) + "/metrics.json", "w") as write_file:
             json.dump(metrics, write_file)
